@@ -1,27 +1,28 @@
 import discord
 from discord.ext import commands
-from botsifre import sifreolustur
 import random
 import os
 import requests
 from deep_translator import GoogleTranslator
 
-ingilizce_cumle = "A plastic bottle takes about 450 years to decompose."
-turkce_ceviri = GoogleTranslator(source='en', target='tr').translate(ingilizce_cumle)
-ingilizce_ceviri=GoogleTranslator(source='tr', target='en').translate(ingilizce_cumle)
-
-print(turkce_ceviri)
 
 intents = discord.Intents.default()
 intents.message_content = True
 intents.members=True
-bot = commands.Bot(command_prefix='$', intents=intents)
+bot = commands.Bot(command_prefix='!', intents=intents)
 
 def ollama_cevap(prompt):
+    giris = (
+        "Sen evde ürettiği atık miktarını azaltmak isteyen ancak nereden başlayacağını bilmeyen yetişkin bireylere yardımcı olan "
+        "bir çevre dostu asistanısın. Cevaplarını sade, uygulanabilir ve cesaretlendirici şekilde ver. "
+        "Teknik detay verme, basit öneriler ver. Soru: "
+    )
+    prompt_s = giris + prompt
+
     url = "http://localhost:11434/api/generate"
     data = {
-        "model": "phi3",
-        "prompt": "Sen evde ürettiği çöp miktarını azaltmak isteyen ancak nereden başlayacağını bilemeyen yetişkin bireylere yardımcı olan bir geri dönüşüm ve sürdürülebilir yaşam asistanısın en fazla 2000 karakter kullan "+prompt,
+        "model": "llama3",
+        "prompt": prompt_s,
         "stream": False
     }
     response = requests.post(url, json=data)
@@ -53,10 +54,9 @@ async def atik(ctx, *,urun):
 @bot.command()
 async def soru(ctx, *,cevap):
     cevap=cevap.lower()
-    ingilizce_cevap=GoogleTranslator(source='tr', target='en').translate(cevap)
-    cevap_bot=ollama_cevap(ingilizce_cevap)
-    turkce_cevap = GoogleTranslator(source='en', target='tr').translate(cevap_bot)
-    await ctx.send(turkce_cevap)
+    cevap_bot=ollama_cevap(cevap)
+
+    await ctx.send(cevap_bot)
 
 
-bot.run("")
+bot.run("token")
